@@ -45,7 +45,7 @@ RUN python3 /src/scripts/csp-hashes.py /dist/index.html > /csp-script-src \
 # ---------------------------------------------------------------------------
 # Runtime image.
 # ---------------------------------------------------------------------------
-FROM nginxinc/nginx-unprivileged:1.30-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
+FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e
 
 ARG APP_VERSION=11.6.0
 ARG CYBERCHEF_COMMIT=f464d62c7c943cda9749a765932a7548ba9bfb16
@@ -67,9 +67,13 @@ LABEL org.opencontainers.image.title="CyberChef" \
       io.rogerbergling.cyberchef.image-tag="${IMAGE_TAG}" \
       io.rogerbergling.cyberchef.build-date="${BUILD_DATE}"
 
-# The base image defaults to uid 101. Build-time copies and metadata writes are
-# done as root, then the final process drops back to 101.
+# The base image defaults to uid 101. Build-time package updates, copies and
+# metadata writes are done as root, then the final process drops back to 101.
 USER root
+
+# Apply fixed Alpine packages present in the pinned base image. CI scans the
+# resulting image with Trivy.
+RUN apk upgrade --no-cache
 COPY --from=builder --chown=101:101 /dist /usr/share/nginx/html
 
 COPY --chown=101:101 docker/favicon.svg /usr/share/nginx/html/favicon.svg

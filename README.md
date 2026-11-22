@@ -37,8 +37,9 @@ is stored separately. The Docker build verifies both checksums before use.
 - **Docker multi-stage build:**
   - `alpine:3.22` (digest-pinned) with Python 3 and `unzip` verifies and
     prepares the release.
-  - `nginxinc/nginx-unprivileged:1.30-alpine` (digest-pinned) serves the
-    static files as uid 101.
+  - `nginxinc/nginx-unprivileged:1.31-alpine` (digest-pinned) serves the
+    static files as uid 101. The final stage runs `apk upgrade` to apply fixed
+    Alpine packages before the image is scanned.
 - **Python scripts** run only during the image build/CI:
   - `scripts/prepare-index.py` injects the runtime hooks and extracts the
     loader SVG.
@@ -297,6 +298,8 @@ host firewall so only HAProxy can reach it. Better still, bind
   JS/CSS/HTML sidecars are denied.
 - nginx tokens are off; directory listing is off.
 - Base images are pinned by digest; GitHub Actions are pinned by commit SHA.
+- The final image runs `apk upgrade` to apply fixed Alpine packages, then CI
+  scans the result with Trivy.
 - The build verifies `source/SHA256SUMS`, resolving the upstream download hash.
 
 ### HTTP headers
