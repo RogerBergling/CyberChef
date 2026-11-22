@@ -1,0 +1,155 @@
+# Generated at container start from docker/nginx.conf.template.
+# Runs as uid 101 (nginx-unprivileged) and listens on an unprivileged port.
+worker_processes ${NGINX_WORKER_PROCESSES};
+pid /tmp/nginx/nginx.pid;
+error_log stderr ${LOG_LEVEL};
+
+events {
+    worker_connections ${NGINX_WORKER_CONNECTIONS};
+    multi_accept on;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    server_tokens off;
+    sendfile on;
+    tcp_nopush on;
+    keepalive_timeout ${KEEPALIVE_TIMEOUT};
+    client_max_body_size ${CLIENT_MAX_BODY_SIZE};
+    absolute_redirect off;
+    etag on;
+
+    client_body_temp_path /tmp/nginx/client_temp;
+    proxy_temp_path /tmp/nginx/proxy_temp;
+    fastcgi_temp_path /tmp/nginx/fastcgi_temp;
+    uwsgi_temp_path /tmp/nginx/uwsgi_temp;
+    scgi_temp_path /tmp/nginx/scgi_temp;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent"';
+    access_log ${ACCESS_LOG_TARGET};
+
+    # Only trusted HAProxy addresses may supply the client IP.
+    include /tmp/nginx/realip.conf;
+
+    gzip ${GZIP};
+    gzip_static on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level ${GZIP_COMP_LEVEL};
+    gzip_min_length 512;
+    gzip_types text/plain text/css application/javascript application/json
+               application/manifest+json application/wasm image/svg+xml;
+
+    server {
+        listen ${APP_PORT} default_server;
+        server_name ${SERVER_NAME};
+
+        root /usr/share/nginx/html;
+        index index.html;
+        charset utf-8;
+        autoindex off;
+
+        # TLS is terminated by HAProxy. HSTS belongs there, not here.
+        add_header Content-Security-Policy "${CSP_HEADER}" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header X-XSS-Protection "0" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "${PERMISSIONS_POLICY}" always;
+        add_header Cross-Origin-Opener-Policy "same-origin" always;
+        add_header Cross-Origin-Resource-Policy "same-origin" always;
+        add_header X-Permitted-Cross-Domain-Policies "none" always;
+        add_header X-DNS-Prefetch-Control "off" always;
+
+        error_page 404 /404.html;
+
+        location = /healthz {
+            access_log off;
+            default_type text/plain;
+            return 200 "ok\n";
+        }
+
+        location = /config.js {
+            alias /tmp/nginx/config.js;
+            default_type application/javascript;
+            expires -1;
+        }
+
+        location = /brand.css {
+            alias /tmp/nginx/brand.css;
+            default_type text/css;
+            expires -1;
+        }
+
+        location = /favicon.svg {
+            expires ${CACHE_MEDIA};
+        }
+
+        location = /version.json {
+            default_type application/json;
+            expires -1;
+        }
+
+        location = /LICENSE {
+            default_type text/plain;
+            expires 1h;
+        }
+
+        location = /NOTICE {
+            default_type text/plain;
+            expires 1h;
+        }
+
+        location = /.well-known/security.txt {
+            default_type text/plain;
+            expires 1h;
+        }
+
+        location = /404.html {
+            internal;
+            expires -1;
+        }
+
+        location = /index.html {
+            expires ${CACHE_HTML};
+        }
+
+        location ~* \.(?:js|css)$ {
+            expires ${CACHE_ASSETS};
+        }
+
+        location ~* \.(?:png|jpe?g|gif|ico|svg|webp|avif|woff2?|ttf|eot)$ {
+            expires ${CACHE_MEDIA};
+        }
+
+        location ~* \.(?:zip)$ {
+            expires ${CACHE_DOWNLOAD};
+        }
+
+        # Never serve dotfiles or source maps. .well-known is handled above.
+        location ~ /\.(?!well-known/|well-known$) {
+            deny all;
+        }
+
+        # Block source maps and compressed HTML/JS/CSS sidecars. Tesseract
+        # language data is a real .gz asset and must remain available.
+        location ~* \.(?:map|(?:js|css|html)\.(?:br|gz))$ {
+            deny all;
+        }
+
+        location ~* /assets/tesseract/lang-data/.*\.gz$ {
+            expires ${CACHE_MEDIA};
+        }
+
+        location / {
+            limit_except GET HEAD {
+                deny all;
+            }
+            try_files $uri $uri/ =404;
+        }
+    }
+}

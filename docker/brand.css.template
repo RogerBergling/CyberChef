@@ -1,0 +1,261 @@
+:root {
+    /* Generic brand values, also used by the 404 page. */
+    --roger-bg: ${BRAND_BG};
+    --roger-panel: ${BRAND_BG_ELEV};
+    --roger-line: ${BRAND_LINE};
+    --roger-text: ${BRAND_TEXT};
+    --roger-muted: ${BRAND_MUTED};
+    --roger-accent: ${BRAND_ACCENT};
+
+    /* Derived from the validated BRAND_ACCENT values (8-digit hex). */
+    --brand-accent-soft: ${BRAND_ACCENT}22;
+    --brand-accent-faint: ${BRAND_ACCENT}1A;
+    --brand-accent-2-soft: ${BRAND_ACCENT_2}22;
+    --brand-accent-2-faint: ${BRAND_ACCENT_2}1A;
+}
+
+:root.dark {
+    color-scheme: dark;
+
+    --primary-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, "Helvetica Neue", Arial, sans-serif;
+    --primary-font-colour: ${BRAND_TEXT};
+    --fixed-width-font-family: ui-monospace, SFMono-Regular, "JetBrains Mono",
+        "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+    --fixed-width-font-colour: ${BRAND_TEXT};
+    --subtext-font-colour: ${BRAND_MUTED};
+
+    --primary-background-colour: ${BRAND_BG};
+    --secondary-background-colour: ${BRAND_BG_SOFT};
+
+    --primary-border-colour: ${BRAND_LINE};
+    --secondary-border-colour: ${BRAND_LINE};
+
+    --title-colour: ${BRAND_TEXT};
+    --title-background-colour: ${BRAND_BG_ELEV};
+
+    --banner-font-colour: ${BRAND_TEXT_SOFT};
+    --banner-bg-colour: ${BRAND_BG_SOFT};
+    --banner-url-colour: ${BRAND_ACCENT};
+
+    --category-list-font-colour: ${BRAND_ACCENT};
+
+    --loader-background-colour: ${BRAND_BG_ELEV};
+    --loader-outer-colour: ${BRAND_ACCENT};
+    --loader-middle-colour: ${BRAND_ACCENT_2};
+    --loader-inner-colour: ${BRAND_OK};
+
+    --op-list-operation-font-colour: ${BRAND_TEXT_SOFT};
+    --op-list-operation-bg-colour: ${BRAND_BG_ELEV};
+    --op-list-operation-border-colour: ${BRAND_LINE};
+
+    --rec-list-operation-font-colour: ${BRAND_TEXT_SOFT};
+    --rec-list-operation-bg-colour: ${BRAND_BG_SOFT};
+    --rec-list-operation-border-colour: ${BRAND_LINE};
+
+    --selected-operation-font-color: ${BRAND_TEXT};
+    --selected-operation-bg-colour: var(--brand-accent-soft);
+    --selected-operation-border-colour: ${BRAND_ACCENT};
+
+    --breakpoint-font-colour: ${BRAND_TEXT};
+    --breakpoint-bg-colour: var(--brand-accent-soft);
+    --breakpoint-border-colour: ${BRAND_ACCENT};
+
+    --disabled-font-colour: ${BRAND_MUTED};
+    --disabled-bg-colour: ${BRAND_BG_ELEV};
+    --disabled-border-colour: ${BRAND_LINE};
+
+    --fc-operation-font-colour: ${BRAND_TEXT_SOFT};
+    --fc-operation-bg-colour: ${BRAND_BG_ELEV};
+    --fc-operation-border-colour: ${BRAND_LINE};
+
+    --fc-breakpoint-operation-font-colour: ${BRAND_TEXT};
+    --fc-breakpoint-operation-bg-colour: var(--brand-accent-2-soft);
+    --fc-breakpoint-operation-border-colour: ${BRAND_ACCENT_2};
+
+    --arg-font-colour: ${BRAND_TEXT_SOFT};
+    --arg-background: ${BRAND_BG};
+    --arg-border-colour: ${BRAND_LINE};
+    --arg-disabled-background: ${BRAND_BG_ELEV};
+    --arg-label-colour: ${BRAND_ACCENT};
+
+    --disable-icon-colour: ${BRAND_MUTED};
+    --disable-icon-selected-colour: ${BRAND_DANGER};
+    --breakpoint-icon-colour: ${BRAND_MUTED};
+    --breakpoint-icon-selected-colour: ${BRAND_DANGER};
+
+    --btn-default-font-colour: ${BRAND_TEXT_SOFT};
+    --btn-default-bg-colour: ${BRAND_BG_ELEV};
+    --btn-default-border-colour: ${BRAND_LINE_STRONG};
+    --btn-default-hover-font-colour: ${BRAND_TEXT};
+    --btn-default-hover-bg-colour: var(--brand-accent-soft);
+    --btn-default-hover-border-colour: ${BRAND_ACCENT};
+
+    --btn-success-font-colour: #04121c;
+    --btn-success-bg-colour: ${BRAND_ACCENT};
+    --btn-success-border-colour: ${BRAND_ACCENT};
+    --btn-success-hover-font-colour: #04121c;
+    --btn-success-hover-bg-colour: #7dd3fc;
+    --btn-success-hover-border-colour: #7dd3fc;
+
+    --hl1: rgba(56, 189, 248, 0.30);
+    --hl2: rgba(167, 139, 250, 0.32);
+    --hl3: rgba(248, 113, 113, 0.34);
+    --hl4: rgba(251, 191, 36, 0.34);
+    --hl5: rgba(52, 211, 153, 0.32);
+
+    --scrollbar-track: ${BRAND_BG};
+    --scrollbar-thumb: #1e293b;
+    --scrollbar-hover: #334155;
+
+    --drop-file-border-colour: ${BRAND_ACCENT};
+    --table-border-colour: ${BRAND_LINE_STRONG};
+    --popover-background: ${BRAND_BG_ELEV};
+    --popover-border-colour: ${BRAND_LINE_STRONG};
+    --code-background: #08101d;
+    --code-font-colour: ${BRAND_TEXT};
+    --input-highlight-colour: ${BRAND_ACCENT};
+    --input-border-colour: ${BRAND_LINE_STRONG};
+}
+
+:root.classic {
+    color-scheme: light;
+
+    --primary-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, "Helvetica Neue", Arial, sans-serif;
+    --primary-font-colour: #0d1729;
+    --fixed-width-font-family: ui-monospace, SFMono-Regular, "JetBrains Mono",
+        "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+    --subtext-font-colour: #55647c;
+
+    --primary-background-colour: #f4f7fc;
+    --secondary-background-colour: #eaf0f8;
+    --primary-border-colour: rgba(15, 23, 42, 0.12);
+    --secondary-border-colour: rgba(15, 23, 42, 0.12);
+    --title-colour: #0d1729;
+    --title-background-colour: #ffffff;
+
+    --banner-font-colour: #24334c;
+    --banner-bg-colour: #eaf0f8;
+    --banner-url-colour: #0284c7;
+
+    --category-list-font-colour: #0284c7;
+    --loader-background-colour: #ffffff;
+    --loader-outer-colour: #0284c7;
+    --loader-middle-colour: #7c3aed;
+    --loader-inner-colour: #059669;
+
+    --op-list-operation-font-colour: #24334c;
+    --op-list-operation-bg-colour: #ffffff;
+    --op-list-operation-border-colour: rgba(15, 23, 42, 0.12);
+    --rec-list-operation-font-colour: #24334c;
+    --rec-list-operation-bg-colour: #ffffff;
+    --rec-list-operation-border-colour: rgba(15, 23, 42, 0.12);
+    --selected-operation-font-color: #0d1729;
+    --selected-operation-bg-colour: var(--brand-accent-soft);
+    --selected-operation-border-colour: #0284c7;
+    --breakpoint-font-colour: #0d1729;
+    --breakpoint-bg-colour: var(--brand-accent-soft);
+    --breakpoint-border-colour: #0284c7;
+    --disabled-font-colour: #7c8aa1;
+    --disabled-bg-colour: #eaf0f8;
+    --disabled-border-colour: rgba(15, 23, 42, 0.12);
+    --fc-operation-font-colour: #24334c;
+    --fc-operation-bg-colour: #ffffff;
+    --fc-operation-border-colour: rgba(15, 23, 42, 0.12);
+    --fc-breakpoint-operation-font-colour: #0d1729;
+    --fc-breakpoint-operation-bg-colour: var(--brand-accent-2-soft);
+    --fc-breakpoint-operation-border-colour: #7c3aed;
+
+    --arg-font-colour: #24334c;
+    --arg-background: #ffffff;
+    --arg-border-colour: rgba(15, 23, 42, 0.16);
+    --arg-disabled-background: #eaf0f8;
+    --arg-label-colour: #0284c7;
+
+    --disable-icon-colour: #7c8aa1;
+    --disable-icon-selected-colour: #dc2626;
+    --breakpoint-icon-colour: #7c8aa1;
+    --breakpoint-icon-selected-colour: #dc2626;
+
+    --btn-default-font-colour: #24334c;
+    --btn-default-bg-colour: #ffffff;
+    --btn-default-border-colour: rgba(15, 23, 42, 0.18);
+    --btn-default-hover-font-colour: #0d1729;
+    --btn-default-hover-bg-colour: #f2f6fc;
+    --btn-default-hover-border-colour: #0284c7;
+    --btn-success-font-colour: #ffffff;
+    --btn-success-bg-colour: #0284c7;
+    --btn-success-border-colour: #0284c7;
+    --btn-success-hover-font-colour: #ffffff;
+    --btn-success-hover-bg-colour: #0369a1;
+    --btn-success-hover-border-colour: #0369a1;
+
+    --hl1: rgba(2, 132, 199, 0.18);
+    --hl2: rgba(124, 58, 237, 0.18);
+    --hl3: rgba(220, 38, 38, 0.20);
+    --hl4: rgba(180, 83, 9, 0.20);
+    --hl5: rgba(5, 150, 105, 0.20);
+
+    --scrollbar-track: #eaf0f8;
+    --scrollbar-thumb: #c2cee2;
+    --scrollbar-hover: #93a3bb;
+
+    --drop-file-border-colour: #0284c7;
+    --table-border-colour: rgba(15, 23, 42, 0.18);
+    --popover-background: #ffffff;
+    --popover-border-colour: rgba(15, 23, 42, 0.18);
+    --code-background: #eaf0f8;
+    --code-font-colour: #0d1729;
+    --input-highlight-colour: #0284c7;
+    --input-border-colour: rgba(15, 23, 42, 0.20);
+}
+
+/* --------------------------------------------------------------------------
+   Finishing touches. Layout is intentionally left to upstream CyberChef.
+   -------------------------------------------------------------------------- */
+#banner {
+    background-image: linear-gradient(180deg, var(--brand-accent-faint), transparent);
+    border-bottom: 1px solid ${BRAND_LINE};
+}
+
+#banner a {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.title {
+    letter-spacing: 0.035em;
+}
+
+.btn,
+.form-control,
+input,
+select,
+textarea {
+    border-radius: 8px;
+}
+
+.btn {
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.btn:focus-visible,
+.form-control:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+    outline: 2px solid ${BRAND_ACCENT};
+    outline-offset: 2px;
+}
+
+::selection {
+    background: ${BRAND_ACCENT};
+    color: #04121c;
+}
+
+:root.classic ::selection {
+    background: #0284c7;
+    color: #ffffff;
+}

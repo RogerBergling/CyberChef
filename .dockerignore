@@ -1,0 +1,13 @@
+# Build context: only the release artifacts and container files are needed.
+.git
+.github
+docs
+README.md
+SECURITY.md
+compose.yaml
+.env
+.env.*
+!.env.example
+*.log
+__pycache__
+*.pyc

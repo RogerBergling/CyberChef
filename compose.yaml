@@ -1,0 +1,97 @@
+name: cyberchef
+
+# Published image: ghcr.io/rogerbergling/cyberchef:latest
+# Host port 8014 -> container port 8080.
+#
+# HAProxy terminates TLS and forwards plain HTTP to this port. Do not publish
+# this container directly to the Internet.
+#
+# Update deliberately:
+#   docker compose pull
+#   docker compose up -d --force-recreate
+
+services:
+  cyberchef:
+    image: ghcr.io/rogerbergling/cyberchef:${IMAGE_TAG:-latest}
+    container_name: cyberchef
+    init: true
+    restart: unless-stopped
+    pull_policy: if_not_present
+
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:${HOST_PORT:-8014}:${APP_PORT:-8080}"
+
+    environment:
+      APP_PORT: "${APP_PORT:-8080}"
+      APP_THEME: "${APP_THEME:-dark}"
+      APP_TITLE: "${APP_TITLE:-CyberChef}"
+      APP_FAVICON: "${APP_FAVICON:-favicon.svg}"
+      SERVER_NAME: "${SERVER_NAME:-_}"
+
+      # An explicitly empty value disables real-IP handling.
+      TRUSTED_PROXY_CIDRS: "${TRUSTED_PROXY_CIDRS-192.168.0.0/18}"
+      REAL_IP_HEADER: "${REAL_IP_HEADER:-X-Forwarded-For}"
+
+      LOG_LEVEL: "${LOG_LEVEL:-warn}"
+      ACCESS_LOG: "${ACCESS_LOG:-on}"
+      NGINX_WORKER_PROCESSES: "${NGINX_WORKER_PROCESSES:-2}"
+      NGINX_WORKER_CONNECTIONS: "${NGINX_WORKER_CONNECTIONS:-1024}"
+      KEEPALIVE_TIMEOUT: "${KEEPALIVE_TIMEOUT:-30s}"
+      CLIENT_MAX_BODY_SIZE: "${CLIENT_MAX_BODY_SIZE:-1m}"
+      GZIP: "${GZIP:-on}"
+      GZIP_COMP_LEVEL: "${GZIP_COMP_LEVEL:-5}"
+      CACHE_HTML: "${CACHE_HTML:--1}"
+      CACHE_ASSETS: "${CACHE_ASSETS:--1}"
+      CACHE_MEDIA: "${CACHE_MEDIA:-7d}"
+      CACHE_DOWNLOAD: "${CACHE_DOWNLOAD:-1h}"
+
+      CSP_DEFAULT_SRC: "${CSP_DEFAULT_SRC:-'self'}"
+      CSP_STYLE_SRC: "${CSP_STYLE_SRC:-'self' 'unsafe-inline'}"
+      CSP_IMG_SRC: "${CSP_IMG_SRC:-'self' data: blob:}"
+      CSP_FONT_SRC: "${CSP_FONT_SRC:-'self' data:}"
+      CSP_CONNECT_SRC: "${CSP_CONNECT_SRC:-'self' blob:}"
+      CSP_MEDIA_SRC: "${CSP_MEDIA_SRC:-'self' data: blob:}"
+      CSP_WORKER_SRC: "${CSP_WORKER_SRC:-'self' blob:}"
+      CSP_CHILD_SRC: "${CSP_CHILD_SRC:-'self' blob:}"
+      CSP_FRAME_SRC: "${CSP_FRAME_SRC:-'none'}"
+      CSP_OBJECT_SRC: "${CSP_OBJECT_SRC:-'none'}"
+      CSP_BASE_URI: "${CSP_BASE_URI:-'none'}"
+      CSP_FORM_ACTION: "${CSP_FORM_ACTION:-'none'}"
+      CSP_FRAME_ANCESTORS: "${CSP_FRAME_ANCESTORS:-'none'}"
+      CSP_MANIFEST_SRC: "${CSP_MANIFEST_SRC:-'self'}"
+      CSP_SCRIPT_SRC: "${CSP_SCRIPT_SRC:-}"
+      PERMISSIONS_POLICY: "${PERMISSIONS_POLICY:-accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), xr-spatial-tracking=()}"
+
+      BRAND_BG: "${BRAND_BG:-#070b14}"
+      BRAND_BG_SOFT: "${BRAND_BG_SOFT:-#0a1020}"
+      BRAND_BG_ELEV: "${BRAND_BG_ELEV:-#0d1526}"
+      BRAND_LINE: "${BRAND_LINE:-rgba(148, 163, 184, 0.18)}"
+      BRAND_LINE_STRONG: "${BRAND_LINE_STRONG:-rgba(148, 163, 184, 0.34)}"
+      BRAND_TEXT: "${BRAND_TEXT:-#e7eefb}"
+      BRAND_TEXT_SOFT: "${BRAND_TEXT_SOFT:-#c2cee2}"
+      BRAND_MUTED: "${BRAND_MUTED:-#93a3bb}"
+      BRAND_ACCENT: "${BRAND_ACCENT:-#38bdf8}"
+      BRAND_ACCENT_2: "${BRAND_ACCENT_2:-#a78bfa}"
+      BRAND_OK: "${BRAND_OK:-#34d399}"
+      BRAND_WARN: "${BRAND_WARN:-#fbbf24}"
+      BRAND_DANGER: "${BRAND_DANGER:-#f87171}"
+
+    # The container is unprivileged, read-only and capability-free.
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 128m
+    mem_reservation: 32m
+    memswap_limit: 128m
+    stop_grace_period: 30s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

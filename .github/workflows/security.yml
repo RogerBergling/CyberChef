@@ -1,0 +1,145 @@
+name: Security checks
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scan:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install pinned Gitleaks
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz
+          echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+
+      - name: Scan history
+        run: |
+          set -euo pipefail
+          /tmp/gitleaks git . --redact --no-banner --exit-code 1 --log-opts=--all --max-target-megabytes 5
+
+  lint:
+    name: Dockerfile and shell lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Install pinned hadolint
+        env:
+          HADOLINT_VERSION: "2.15.1"
+          HADOLINT_SHA256: "c7187db94eeeeca956519a6af171adc31453941a1e777961f6e680f697c8c507"
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-linux-x86_64" -o /tmp/hadolint
+          echo "${HADOLINT_SHA256}  /tmp/hadolint" | sha256sum -c -
+          chmod +x /tmp/hadolint
+
+      - name: Lint Dockerfile
+        run: /tmp/hadolint --failure-threshold warning Dockerfile
+
+      - name: Install pinned ShellCheck
+        env:
+          SHELLCHECK_VERSION: "0.11.0"
+          SHELLCHECK_SHA256: "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198"
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" -o /tmp/shellcheck.tar.xz
+          echo "${SHELLCHECK_SHA256}  /tmp/shellcheck.tar.xz" | sha256sum -c -
+          tar -xJf /tmp/shellcheck.tar.xz -C /tmp
+
+      - name: Lint shell scripts
+        run: /tmp/shellcheck-v0.11.0/shellcheck docker/entrypoint.sh docker/healthcheck.sh
+
+      - name: Check source checksums and Python scripts
+        run: |
+          set -euo pipefail
+          sha256sum -c source/SHA256SUMS
+          unzip -p source/CyberChef_*.zip index.html.gz > /tmp/index-from-zip.gz
+          cmp /tmp/index-from-zip.gz source/index.html.gz
+          python3 -m py_compile scripts/csp-hashes.py scripts/prepare-index.py
+
+      - name: Validate Compose file
+        run: docker compose config --quiet
+
+  image-scan:
+    name: Build, smoke test and scan image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Build image
+        run: docker build -t cyberchef:test .
+
+      - name: Smoke test hardened container
+        run: |
+          set -euo pipefail
+          docker run -d --name cyberchef-test \
+            --read-only \
+            --tmpfs /tmp:size=32m,noexec,nosuid,mode=1777 \
+            --security-opt no-new-privileges:true \
+            --cap-drop ALL \
+            -p 18014:8080 \
+            -e APP_THEME=dark \
+            cyberchef:test
+          trap 'docker rm -f cyberchef-test >/dev/null 2>&1 || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18014/healthz >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:18014/healthz | grep -qx ok
+          curl -fsS http://127.0.0.1:18014/ | grep -q 'src="config.js"'
+          curl -fsS http://127.0.0.1:18014/ | grep -q 'href=brand.css'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18014/csp-script-src)" = "404"
+          curl -fsS http://127.0.0.1:18014/config.js | grep -q 'var theme = "dark"'
+          curl -fsS http://127.0.0.1:18014/brand.css | grep -q '#070b14'
+          curl -fsS http://127.0.0.1:18014/images/bombe.svg | grep -q '<svg'
+          zip_name=$(basename "$(ls source/CyberChef_*.zip)")
+          zip_hash=$(sha256sum "source/${zip_name}" | cut -d' ' -f1)
+          curl -fsSI "http://127.0.0.1:18014/${zip_name}" | grep -q '200'
+          curl -fsS http://127.0.0.1:18014/ | grep -q "${zip_hash}"
+          curl -fsSI http://127.0.0.1:18014/ | grep -qi "content-security-policy:.*object-src 'none'"
+          curl -fsSI http://127.0.0.1:18014/ | grep -qi "content-security-policy:.*wasm-unsafe-eval"
+          curl -fsSI http://127.0.0.1:18014/ | grep -qi "x-frame-options: DENY"
+          curl -fsSI http://127.0.0.1:18014/ | grep -qi "x-content-type-options: nosniff"
+          test "$(docker inspect -f '{{.State.Running}}' cyberchef-test)" = "true"
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: cyberchef:test
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          vuln-type: os,library
+          exit-code: "1"

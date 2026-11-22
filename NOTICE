@@ -1,0 +1,11 @@
+CyberChef
+Copyright (C) Crown Copyright 2016-2026
+Upstream project: https://github.com/gchq/CyberChef
+Upstream version: 11.6.0 (commit f464d62c7c943cda9749a765932a7548ba9bfb16)
+
+CyberChef is licensed under the Apache License, Version 2.0. See LICENSE.
+
+This repository adds container packaging, runtime configuration, branding,
+documentation and CI. Those files are provided under the same Apache-2.0
+license unless stated otherwise. This is an unofficial deployment of
+CyberChef and is not endorsed by GCHQ.

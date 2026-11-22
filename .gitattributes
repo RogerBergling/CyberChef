@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+source/*.zip binary
+source/*.gz binary
+docs/screenshots/*.png binary
