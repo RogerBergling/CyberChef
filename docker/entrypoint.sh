@@ -101,10 +101,11 @@ validate_cache_value() {
 case "$APP_THEME" in
     dark|black) APP_THEME=dark ;;
     light|white|classic) APP_THEME=classic ;;
+    system|auto) APP_THEME=system ;;
     geocities) APP_THEME=geocities ;;
     solarized-dark|solarizedDark) APP_THEME=solarizedDark ;;
     solarized-light|solarizedLight) APP_THEME=solarizedLight ;;
-    *) die "APP_THEME must be dark, light, classic, geocities, solarized-dark or solarized-light" ;;
+    *) die "APP_THEME must be dark, light, system, classic, geocities, solarized-dark or solarized-light" ;;
 esac
 
 require_uint APP_PORT "$APP_PORT"
@@ -252,6 +253,11 @@ cat > "$RUNTIME_DIR/config.js" <<EOF
 (function () {
     "use strict";
     var theme = "${APP_THEME}";
+    if (theme === "system") {
+        theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "classic"
+            : "dark";
+    }
     var title = "${APP_TITLE_JSON}";
     var icon = "${APP_FAVICON}";
     try {

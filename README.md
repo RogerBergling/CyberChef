@@ -151,7 +151,7 @@ closed rather than starting with a broken or unsafe configuration.
 
 | Variable | Default | Description |
 |---|---|---|
-| `APP_THEME` | `dark` | Default theme for first-time visitors. Values: `dark`, `light`, `classic`, `geocities`, `solarized-dark`, `solarized-light`. `light`, `white` and `classic` all map to CyberChef Classic. |
+| `APP_THEME` | `dark` | Default theme for first-time visitors. Values: `dark`, `light`, `system`, `classic`, `geocities`, `solarized-dark`, `solarized-light`. `light`, `white` and `classic` all map to CyberChef Classic; `system` follows `prefers-color-scheme` and resolves to dark or Classic. |
 | `APP_TITLE` | `CyberChef` | Base browser tab title. CyberChef still prefixes the active recipe, e.g. `To Base64 - CyberChef`. Printable ASCII only. |
 | `APP_FAVICON` | `favicon.svg` | Local relative favicon path shipped in the image (SVG or PNG). |
 | `SERVER_NAME` | `_` | nginx `server_name`; `_` is the catch-all. |
@@ -163,6 +163,7 @@ closed rather than starting with a broken or unsafe configuration.
 ```dotenv
 APP_THEME=dark    # default
 # APP_THEME=light # white mode (CyberChef Classic)
+# APP_THEME=system # follow the visitor's prefers-color-scheme
 ```
 
 `APP_THEME` is the **default**, not a forced theme. On the first visit,

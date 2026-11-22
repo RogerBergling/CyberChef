@@ -27,7 +27,8 @@ APP_TITLE=CyberChef
 TRUSTED_PROXY_CIDRS=192.168.0.0/18
 ```
 
-For white mode, set `APP_THEME=light`. The full template includes branding,
+For white mode, set `APP_THEME=light`; for automatic light/dark, set
+`APP_THEME=system`. The full template includes branding,
 CSP, caching, gzip, proxy and nginx settings.
 
 If HAProxy is itself a container, add the Docker bridge/network CIDR to the
