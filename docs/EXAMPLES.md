@@ -18,13 +18,13 @@ This is enough for a same-host HAProxy deployment on port `8014`:
 
 ```dotenv
 IMAGE_TAG=latest
-BIND_ADDRESS=0.0.0.0
+BIND_ADDRESS=127.0.0.1
 HOST_PORT=8014
 APP_PORT=8080
 
 APP_THEME=dark
 APP_TITLE=CyberChef
-TRUSTED_PROXY_CIDRS=192.168.0.0/18
+TRUSTED_PROXY_CIDRS=127.0.0.1/32
 ```
 
 For white mode, set `APP_THEME=light`; for automatic light/dark, set
@@ -35,10 +35,11 @@ If HAProxy is itself a container, add the Docker bridge/network CIDR to the
 trusted proxies, for example:
 
 ```dotenv
-TRUSTED_PROXY_CIDRS=192.168.0.0/18,172.16.0.0/12
+TRUSTED_PROXY_CIDRS=127.0.0.1/32,172.16.0.0/12
 ```
 
-> `BIND_ADDRESS=0.0.0.0` publishes the port on every interface. Restrict it with
+> `BIND_ADDRESS=0.0.0.0` publishes the port on every interface. Prefer the
+> loopback default and restrict a non-loopback bind with
 > a host firewall, or use `BIND_ADDRESS=127.0.0.1` when HAProxy runs directly on
 > the host.
 
@@ -72,7 +73,7 @@ services:
     container_name: cyberchef
     restart: unless-stopped
     ports:
-      - "${BIND_ADDRESS:-0.0.0.0}:${HOST_PORT:-8014}:${APP_PORT:-8080}"
+      - "${BIND_ADDRESS:-127.0.0.1}:${HOST_PORT:-8014}:${APP_PORT:-8080}"
     env_file:
       - .env
     read_only: true

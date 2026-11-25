@@ -23,7 +23,7 @@ die() {
 : "${APP_FAVICON:=favicon.svg}"
 : "${SERVER_NAME:=_}"
 # An explicitly empty value disables real-IP handling; unset uses the default.
-: "${TRUSTED_PROXY_CIDRS=192.168.0.0/18}"
+: "${TRUSTED_PROXY_CIDRS=127.0.0.1/32}"
 : "${REAL_IP_HEADER:=X-Forwarded-For}"
 : "${LOG_LEVEL:=warn}"
 : "${ACCESS_LOG:=on}"

@@ -1,5 +1,7 @@
 # CyberChef — hardened container
 
+**Project facts (2026-11-25):** CyberChef **11.6.0** packaging · prebuilt upstream release + nginx/Docker · Docker smoke and Trivy in CI · Apache-2.0.
+
 [CyberChef](https://github.com/gchq/CyberChef) v11.6.0 packaged as a small,
 hardened, unprivileged nginx container with dark/light defaults, Roger's
 control-room branding, runtime configuration and GHCR publishing.
@@ -59,8 +61,10 @@ account system or server-side processing. The container's only jobs are to:
 3. Apply a strict security-header policy.
 4. Accept plain HTTP from HAProxy, which terminates TLS.
 
-Input, recipes, favourites and options stay in the visitor's browser
-(`localStorage`). The web server never receives or stores them. CyberChef has
+Input, recipes, favourites and options normally stay in the visitor's browser
+(`localStorage`). A recipe can deliberately use the HTTP Request operation to
+send input to a same-origin URL; nginx does not log query strings, and the
+default CSP blocks other origins. CyberChef has
 three operations that can contact external services — **HTTP request**, **DNS
 over HTTPS** and **Show on map**. The default CSP blocks all three; see
 [CSP and blocked network operations](#csp-and-blocked-network-operations).
@@ -143,7 +147,7 @@ closed rather than starting with a broken or unsafe configuration.
 | Variable | Default | Description |
 |---|---|---|
 | `IMAGE_TAG` | `latest` | Image tag to run (Compose only). For digest pinning, edit the `image:` line in `compose.yaml`. |
-| `BIND_ADDRESS` | `0.0.0.0` | Host address to publish on (Compose only). |
+| `BIND_ADDRESS` | `127.0.0.1` | Host address to publish on (Compose only). Set `0.0.0.0` only when HAProxy is on another host/container and restrict the port with a firewall. |
 | `HOST_PORT` | `8014` | Host port HAProxy connects to (Compose only). |
 | `APP_PORT` | `8080` | nginx listen port inside the container. Must be 1024–65535. |
 
@@ -155,7 +159,7 @@ closed rather than starting with a broken or unsafe configuration.
 | `APP_TITLE` | `CyberChef` | Base browser tab title. CyberChef still prefixes the active recipe, e.g. `To Base64 - CyberChef`. Printable ASCII only. |
 | `APP_FAVICON` | `favicon.svg` | Local relative favicon path shipped in the image (SVG or PNG). |
 | `SERVER_NAME` | `_` | nginx `server_name`; `_` is the catch-all. |
-| `TRUSTED_PROXY_CIDRS` | `192.168.0.0/18` | Comma-separated CIDRs allowed to set `X-Forwarded-For`. Empty disables real-IP handling. |
+| `TRUSTED_PROXY_CIDRS` | `127.0.0.1/32` | Comma-separated CIDRs allowed to set `X-Forwarded-For`. Set the exact HAProxy address/subnet; empty disables real-IP handling. |
 | `REAL_IP_HEADER` | `X-Forwarded-For` | Header used for the real client IP. |
 
 #### Theme behaviour
@@ -274,14 +278,16 @@ on a dedicated Docker network and connect directly to `cyberchef:8080`.
 `TRUSTED_PROXY_CIDRS` controls which peers may set `X-Forwarded-For`. Set it to
 the **source address HAProxy appears as** to nginx:
 
-- HAProxy on the LAN: `192.168.0.0/18` (the default).
+- A local HAProxy on the same host: `127.0.0.1/32` (the default).
+- HAProxy on the LAN: set the exact LAN CIDR, for example `192.168.0.0/18`.
 - HAProxy container on a Docker bridge: add that bridge/network, for example
-  `192.168.0.0/18,172.16.0.0/12`.
+  `127.0.0.1/32,172.16.0.0/12`.
 - Unknown or direct exposure: set it empty. Logs will show the proxy address,
   and no client can spoof `X-Forwarded-For`.
 
-Because Compose publishes on `0.0.0.0` by default, restrict port `8014` with a
-host firewall so only HAProxy can reach it. Better still, bind
+Compose publishes on loopback by default. If you set `BIND_ADDRESS=0.0.0.0`,
+restrict port `8014` with a host firewall so only HAProxy can reach it. Better
+still, bind
 `BIND_ADDRESS=127.0.0.1` when HAProxy runs on the host.
 
 ## Security
@@ -328,7 +334,7 @@ operations:
 
 | Operation | Why it is blocked | To enable |
 |---|---|---|
-| HTTP request | `connect-src 'self' blob:` blocks arbitrary destinations. Allowing `https:` would let a recipe exfiltrate input. | Set `CSP_CONNECT_SRC` to the exact origins you trust. |
+| HTTP request to another origin | `connect-src 'self' blob:` blocks arbitrary destinations. Same-origin requests are still possible; nginx does not log query strings. Allowing `https:` would let a recipe exfiltrate input. | Set `CSP_CONNECT_SRC` to the exact origins you trust. |
 | DNS over HTTPS | `connect-src 'self' blob:` blocks Google/Cloudflare resolvers. | `CSP_CONNECT_SRC="'self' blob: https://dns.google.com https://cloudflare-dns.com"` |
 | Show on map | `img-src` does not allow Wikimedia tile hosts. | Add the tile host to `CSP_IMG_SRC`. |
 | Render HTML scripts | No `unsafe-eval`. Inline event handlers and injected scripts do not run. | Not recommended. |
